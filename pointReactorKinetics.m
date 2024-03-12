@@ -1,58 +1,45 @@
 % OSTR Hybrid Model, Point reactor kinetics module
+% Solves power & precursor concentration over time using RK4 method.
+% Known reactivity insertion.
 
-function pointReactorKinetics
-    % Define parameters
-    beta = 0.007;   % Delayed neutron fraction
-    lambda = [0.08, 0.12, 0.25, 0.3, 1.2, 3.0];  % Decay constants
+% Parameters
+% Rho will eventually become some defined function based on parameters such as xenon, control rod insertion, etc.
+beta = 0.0065;
+generationTime = 0.0001;
+lambda = 0.08; % one-delayed group of neutrons (for now at least)
 
-    % Set up initial conditions
-    P0 = 1.0;  % Initial power
+% initial conditions
+time_step = 0.01; % in seconds
+initial_time = 0; % in seconds
+final_time = 15; % in seconds
+initial_power = 1; % Megawatt
+initial_concentration = 0;
 
-    % Set up time span
-    tspan = [0, 15];
+% initialize vectors to store values from RK4 iterations
+time_values = initial_time:time_step:final_time;
+power_values = zeros(1501);
+power_values(1) = initial_power;
+concentration_values = zeros(1501);
+concentration_values(1) = initial_concentration;
 
-    % Solve the system using ode15s
-    options = odeset('RelTol', 1e-6, 'AbsTol', 1e-9);
-    [t, results] = ode15s(@reactorODE, tspan, [P0, 0], options, beta, lambda);
+% RK4 iteration
+for i = 1:power_values-1
+    rho = (0.05 * i) - 0.2 ;
+    k1 = time_step * changeInPower(time_values(i), power_values(:,i), rho, concentration_values(i));
+    k2 = time_step * changeInPower(time_values(i) + time_step/2, power_values(:,i) + k1 / 2, rho, concentration_values(i));
+    k3 = time_step * changeInPower(time_values(i) + time_step/2, power_values(:,i) + k2 / 2, rho, concentration_values(i));
+    k4 = time_step * changeInPower(time_values(i) + time_step, power_values(:,i) + k3, rho, concentration_values(i));
+    power_values(i+1) = power_values(i) + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
 
-    % Extract power and reactivity results
-    P = results(:, 1);
-    reactivity = results(:, 2);
+    z1 = time_step * changeInConcentration(time_values(i), power_values(:,i), concentration_values(i));
+    z2 = time_step * changeInConcentration(time_values(i) + time_step/2, power_values(:,i) + z1 / 2, concentration_values(i));
+    z3 = time_step * changeInConcentration(time_values(i) + time_step/2, power_values(:,i + z2 / 2), concentration_values(i));
+    z4 = time_step * changeInConcentration(time_values(i) + time_step, power_values(:,i) + k3, concentration_values(i));
+    concentration_values(:,i+1) = concentration_values(:,i) + (z1 + 2 * z2 + 2 * z3 + z4) / 6;
 
-    % Plot the results
-    figure;
-
-    % Plot Power
-    subplot(2, 1, 1);
-    plot(t, P, 'LineWidth', 2);
-    title('Point Reactor Kinetics');
-    xlabel('Time');
-    ylabel('Power');
-    grid on;
-
-    % Plot Reactivity
-    subplot(2, 1, 2);
-    plot(t, reactivity, 'LineWidth', 2);
-    xlabel('Time');
-    ylabel('Reactivity');
-    grid on;
 end
 
-function dXdt = reactorODE(t, X, beta, lambda)
-    % Point reactor kinetics equations
-    P = X(1);
-    
-    % Define piecewise reactivity function
-    if t >= 0 && t < 5
-        reactivity = 0.08 * t;
-    elseif t >= 5 && t <= 15
-        reactivity = 0.4 - 0.08 * (t-5);
-    else
-        reactivity = 0; % Reactivity is zero outside the specified intervals
-    end
-
-    lambda_eff = sum(lambda) - beta;
-    dPdt = (reactivity * P + beta * sum(lambda .* P)) / lambda_eff;
-    dRhodt = reactivity;
-    dXdt = [dPdt; dRhodt];
-end
+plot(time_values, power_values(1,:));
+title('PRKE RK4 Method');
+xlabel('Time');
+ylabel('Power');
