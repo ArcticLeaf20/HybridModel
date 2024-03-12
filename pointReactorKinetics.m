@@ -34,7 +34,7 @@ for i = 1:power_values-1
     z1 = time_step * changeInConcentration(time_values(i), power_values(:,i), concentration_values(i));
     z2 = time_step * changeInConcentration(time_values(i) + time_step/2, power_values(:,i) + z1 / 2, concentration_values(i));
     z3 = time_step * changeInConcentration(time_values(i) + time_step/2, power_values(:,i + z2 / 2), concentration_values(i));
-    z4 = time_step * changeInConcentration(time_values(i) + time_step, power_values(:,i) + k3, concentration_values(i));
+    z4 = time_step * changeInConcentration(time_values(i) + time_step, power_values(:,i) + z3, concentration_values(i));
     concentration_values(:,i+1) = concentration_values(:,i) + (z1 + 2 * z2 + 2 * z3 + z4) / 6;
 
 end
