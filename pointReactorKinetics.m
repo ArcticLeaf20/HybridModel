@@ -43,3 +43,13 @@ plot(time_values, power_values(1,:));
 title('PRKE RK4 Method');
 xlabel('Time');
 ylabel('Power');
+
+function dPdt = changeInPower(time, power, rho, concentration)
+    dPdt = ( (rho - beta) / generationTime) * power(time) + (lambda * concentration(time));
+
+end
+
+function dCdt = changeInConcentration(time, power, concentration)
+    dCdt = (beta - generationTime) * power(time) - lambda * concentration(time);
+
+end
