@@ -10,7 +10,7 @@ decay_constants = [0.0128, 0.301, 0.124, 0.325, 1.12, 2.69]; % decay constants f
 beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % beta values for each precursor group
 beta = sum(beta_i); % beta effective
 concentration_values = zeros(1, 6); % empty array to store concentration values
-changein_concentration = zeros(1, 6);
+changein_concentration = zeros(1, 6); % testing for concentration errors
 power_values = zeros(1, length(time_values)); % empty array to store power values
 initial_power = 1 * 10^6; % initial power in watts
 
@@ -35,8 +35,8 @@ for i = 1:length(time_values)
     initial_power = new_power;
 
     for z = 1:6
-        changein_concentration(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z);
-        concentration_values(z) = changein_concentration(z) + concentration_values(z);
+        changein_concentration(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z); % I know the PRKE equation for concentration is dC/dt = .... so I wasn't sure if we had to calculate the change in concentration and then add that to the old concentration.
+        concentration_values(z) = changein_concentration(z) + concentration_values(z); % Still gives same huge numbers.
     end
     C_old = concentration_values;
     power_values(i) = new_power;
