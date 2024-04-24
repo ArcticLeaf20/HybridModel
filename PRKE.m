@@ -1,55 +1,41 @@
-% OSTR Hybrid Simulation Model, PRKE Solver Module
-% Developed by Aidan Marsters
-% Solves for power and precursor concentrations over time for a given
-% reactivity insertion. Uses integrating factor approach to solve PRKE.
+%OSTR Hybrid Model PRKE Module
 
-increment = 15 / 0.01; % Define the increment based on the time step
-time_values = linspace(0, 15, increment); % Create an array of evenly spaced time values
-% Parameters
+%Time
+h = 0.5; %time step
+time_values = 0:h:15; % matrix of time values 0 to 15 seconds at 0.5 second increment
+
+%Parameters
 generationTime = 1 * (10^-7); % Mean neutron generation time
-decay_constants = [0.0128, 0.0301, 0.124, 0.325, 1.12, 2.69]; % Decay constants for each precursor group
-beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % Beta values for precursor groups
-beta = sum(beta_i); % Effective beta
-concentration_values = zeros(1, 6); % Array for concentration values
-power_values = zeros(1, length(time_values)); % Array for power values
-initial_power = 3000 * 10^6; % Initial power in watts
-reactivity = zeros(1, increment); % Array for reactivity values
+decay_constants = [0.0128, 0.301, 0.124, 0.325, 1.12, 2.69]; % decay constants for each precursor group
+beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % beta values for each precursor group
+beta = sum(beta_i); % beta effective
+concentration_values = zeros(1, 6); % empty array to store concentration values
+power_values = zeros(1, length(time_values)); % empty array to store power values
+initial_power = 1 * 10^6; % initial power in watts
 
-% Initialize initial precursor concentrations
 for j = 1:6
-   concentration_values(j) = (beta_i(j) / (decay_constants(j) * generationTime)) * initial_power;
+    concentration_values(j) = (beta_i(j) / (decay_constants(j) * generationTime)) * initial_power;
 end
-    
+
 C_old = concentration_values;
-time_step = 0.01;
-    
-% Main loop to calculate new concentration/power values
-for k = 1:length(time_values)
-    if time_values(k) < 5
-       reactivity(k) = 0.08 * time_values(k) * beta;
-    else
-       reactivity(k) = (0.4 - 0.08 * (time_values(k) - 5)) * beta;
-    end
-        
-    alpha = (reactivity(k) - beta) / generationTime;
-        
+reactivity = 0.04;
+
+for i = 1:length(time_values)
     concentration_sum = 0;
     for x = 1:6
-       concentration_sum = concentration_sum + decay_constants(x) * C_old(x);
+        concentration_sum = concentration_sum + decay_constants(x) * C_old(x);
     end
-        
-    power_values(k) = initial_power * exp(alpha * time_step) + ((1 / alpha) * (exp(alpha * time_step) - 1) * (concentration_sum));
-        
-    for z = 1:6
-            concentration_values(z) = (C_old(z) * exp(-decay_constants(z) * time_step)) + ((beta_i(z) / generationTime) * 0.5 * (power_values(k) + initial_power) * (1 - exp(-decay_constants(z) * time_step)) * (1 / decay_constants(z)));
-    end
-        
-    C_old = concentration_values;
-    initial_power = power_values(k);
-end
+    
+    k1 = ((reactivity - beta) / generationTime) * initial_power + concentration_sum;
+    k2 = ((reactivity - beta) / generationTime) * (initial_power + h*(k1/2)) + concentration_sum;
+    k3 = ((reactivity - beta) / generationTime) * (initial_power + h*(k2/2)) + concentration_sum;
+    k4 = ((reactivity - beta) / generationTime) * (initial_power + h*k3) + concentration_sum;
+    new_power = initial_power + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
+    initial_power = new_power;
 
-figure;
-plot(time_values, power_values);
-title('Solution to PRKE');
-xlabel('Time (Seconds)');
-ylabel('Power (watts)');
+    for z = 1:6
+        concentration_values(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z);
+    end
+    C_old = concentration_values;
+    power_values(i) = new_power;
+end
