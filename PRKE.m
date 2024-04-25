@@ -14,7 +14,10 @@ power_values = zeros(1, length(time_values)); % empty array to store power value
 initial_power = 1 * 10^6; % initial power in watts
 
 concentration_value2=zeros(1,6)
-
+% where does the initial concentration value come from? it is very large to
+% being with, which makes sense if you are counting atoms/molecules.
+% However, this will be added to the power value so it seems like you
+% should look into the units.
 for j = 1:6
     concentration_values(j) = (beta_i(j) / (decay_constants(j) * generationTime)) * initial_power;
 end
@@ -27,7 +30,15 @@ for i = 1:length(time_values)
     for x = 1:6
         concentration_sum = concentration_sum + decay_constants(x) * C_old(x);
     end
-    
+    % should there be a factor for converting from number of neutrons to
+    % power? the PRKEs are for neutron population and precursor
+    % concentration. if the orders of magnitude are for neutrons and
+    % precursor concentration, it will be way too high for power. that
+    % seems to be what is happening. the concentration sum is starting out
+    % at 1E10 and the (reactivity-beta)/generationTime term is 1E5 so you
+    % are multiplying the power by something on the order of 1E5, then
+    % adding something on the order of 1E10, so it is going to be a huge
+    % number right off the bat
     k1 = ((reactivity - beta) / generationTime) * initial_power + concentration_sum;
     k2 = ((reactivity - beta) / generationTime) * (initial_power + h*(k1/2)) + concentration_sum;
     k3 = ((reactivity - beta) / generationTime) * (initial_power + h*(k2/2)) + concentration_sum;
@@ -37,7 +48,7 @@ for i = 1:length(time_values)
 
     for z = 1:6
         concentration_value2(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z);
-        concentration_values(z) = concentration_values(z) + concentration_value2(z)
+        concentration_values(z) = concentration_values(z) + concentration_value2(z)*h
         
     end
     C_old = concentration_values;
