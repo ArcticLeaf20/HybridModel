@@ -25,7 +25,8 @@ function [reac_eff_Xe, NI, NX] = xenon_buildup(power, time, NI,NX)
    
 
  
-
+    % I am pretty sure that you are missing a neutron per fission term in
+    % the flux calculation -AMW
     neutron_flux=power*(10^6)/((mifcs)*E_r*volume_of_core);  % 'Mystery number' is a conversion from MW to W result is in neutrons cm^-2 s^-1
     
     NI =((ify)*(mfcs)*(neutron_flux)-(1/ids)*(iodine_pop))*(time);                              % Determines Iodine population
@@ -40,7 +41,8 @@ function [reac_eff_Xe, NI, NX] = xenon_buildup(power, time, NI,NX)
     disp(reac_eff_Xe)
 end 
    
-
+% I think this function should take in the control rod heights as inputs
+% -AMW
 function cr_reac_eff = control_rod_reac() % CAN BE FURTHER REFINED, roughly dtermines reactivity; tables with values will later be added for better accuracy
     reg_rod=linspace(0,3.19, 1001);
     safety_rod=linspace(0,2.15,1001);
@@ -60,6 +62,6 @@ end
  
 
 function reactivity = master_reactivity_function(power, time, NI, NX)
-        reactivity=control_rod_reac()-xenon_buildup(power, time, NI, NX);
+        reactivity=control_rod_reac()-xenon_buildup(power, time, NI, NX);   % the xenon_buildup function returns more than one number. how does that work with the subtraction? -AMW
         disp(reactivity)
 end 
