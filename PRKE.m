@@ -13,6 +13,8 @@ concentration_values = zeros(1, 6); % empty array to store concentration values
 power_values = zeros(1, length(time_values)); % empty array to store power values
 initial_power = 1 * 10^6; % initial power in watts
 
+concentration_value2=zeros(1,6)
+
 for j = 1:6
     concentration_values(j) = (beta_i(j) / (decay_constants(j) * generationTime)) * initial_power;
 end
@@ -34,7 +36,9 @@ for i = 1:length(time_values)
     initial_power = new_power;
 
     for z = 1:6
-        concentration_values(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z);
+        concentration_value2(z) = (beta / generationTime) * initial_power - decay_constants(z) * C_old(z);
+        concentration_values(z) = concentration_values(z) + concentration_value2(z)
+        
     end
     C_old = concentration_values;
     power_values(i) = new_power;
