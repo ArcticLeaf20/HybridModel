@@ -18,10 +18,11 @@ The following are the designated tasks for each group member. This is a fluid li
 2. Primary HX - Oden Armstrong
 3. Thermal hydraulic general oversight - Drake Martin
 4. Validation of TH model - Drake Martin
-5. Fuel coefficient - Oden Armstrong
+5. Fuel temperature coefficient - Oden Armstrong
 6. Moderator density coefficient - Drake Martin
 7. Xenon reactivity - Gabe / Aidan
 8. Control rod worth - Gabe / Aidan
 9. Reactor kinetics - Aidan
 10. Neutronics general oversight - Aidan / Gabe
 11. Validation of neutronics model - Gabe
+
