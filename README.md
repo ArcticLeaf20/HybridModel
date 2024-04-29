@@ -26,3 +26,4 @@ The following are the designated tasks for each group member. This is a fluid li
 10. Neutronics general oversight - Aidan / Gabe
 11. Validation of neutronics model - Gabe
 
+[flowchart.pdf](https://github.com/ArcticLeaf20/HybridModel/files/15154059/flowchart.pdf)
