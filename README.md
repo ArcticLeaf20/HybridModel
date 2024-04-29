@@ -14,8 +14,8 @@ Coding Rules:
 
 Code Tasks:
 The following are the designated tasks for each group member. This is a fluid list that will adapt and change over time as the needs of the project become more evident.
-1. Cooling tower fan - Oden Armstrong
-2. Primary HX - Oden Armstrong
+1. Primary Heat Exchanger - Oden Armstrong
+2. Moderator Temperature - Oden Armstrong
 3. Thermal hydraulic general oversight - Drake Martin
 4. Validation of TH model - Drake Martin
 5. Fuel temperature coefficient - Oden Armstrong
