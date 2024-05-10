@@ -8,7 +8,7 @@ beta = sum(beta_i); % Effective beta;
 concentration_values = zeros(6, length(PRKEtime_values)); % Array for concentration values
 TB=34;
 initial_power = 1; % Initial power in watts
-
+Toutold=27;
 reactivity=0;
 
 initial_concentration = beta_i./(decay_constants.*generationTime).*initial_power;
@@ -71,17 +71,18 @@ end
 
 
 %updates temp with new power
-TB = bulktemp(TB, initial_power);
+TB = bulktemp(TB, initial_power,Toutold);
 
 %updates moderator temp in core with new T bulk value
-Tf = Fueltemperature(TB, initial_power);
+Tf = Fueltemperature(TB, initial_power,Toutold);
 
-modtemp = avgmodtemp(TB, initial_power);
+modtemp = avgmodtemp(TB, initial_power,Toutold);
 
 Mod_Reactivity_R = mod_reactivity(modtemp);
 
 Fuel_Reactivity_R = fuel_reactivity(Tf);
 
+Toutold =HeatExchanger(TB, Toutold);
 
 for i = 1:length(PRKEtime_values)
     
@@ -171,27 +172,27 @@ end
 
 
 
-function PrimaryWaterTout = HeatExchanger(TB)
-   PrimaryWaterTout = -(((((164.3) * (TB) - 4436.2) / (TB - 12.77)) * ((TB + Toutold) / 2)) / 164.3) + TB  
+function PrimaryWaterTout = HeatExchanger(TB,Toutold)
+   PrimaryWaterTout = -(((((164.3) * (TB) - 4436.2) / (TB - 12.77)) * ((TB + Toutold) / 2)) / 164.3) + TB;  
 end
 
-function Tout = coreout(TB, initial_power)
-    Tout = 21 + HeatExchanger(TB)+0.00035*(initial_power);
+function Tout = coreout(TB, initial_power, Toutold)
+    Tout = 21 + HeatExchanger(TB,Toutold)+0.00035*(initial_power);
 end
 
 
-function Tf = Fueltemperature(TB, initial_power)
-    Tf = 558.895 + coreout(TB, initial_power);
+function Tf = Fueltemperature(TB, initial_power,Toutold)
+    Tf = 558.895 + coreout(TB, initial_power,Toutold);
     
 end
 
-function modtemp = avgmodtemp(TB, initial_power)
-    modtemp = (HeatExchanger(TB) + coreout(TB, initial_power)) / 2;
+function modtemp = avgmodtemp(TB, initial_power,Toutold)
+    modtemp = (HeatExchanger(TB,Toutold) + coreout(TB, initial_power,Toutold)) / 2;
 end
 
 
-function TB = bulktemp(TB, initial_power)
-    TB = (178.3 * coreout(TB,initial_power) + (341.7 * HeatExchanger(TB))) / 520;
+function TB = bulktemp(TB, initial_power,Toutold)
+    TB = (178.3 * coreout(TB,initial_power,Toutold) + (341.7 * HeatExchanger(TB,Toutold))) / 520;
    
 end
 
@@ -217,6 +218,5 @@ function reactivity = master_reactivity_function(Mod_Reactivity_R, Fuel_Reactivi
         reactivity=(control_rod_reac() - reac_eff_Xe + Mod_Reactivity_R + Fuel_Reactivity_R);
         
 end 
-
 
 
