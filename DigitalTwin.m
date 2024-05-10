@@ -1,23 +1,27 @@
 format default
-time_values_real = linspace(1, 604800,604800);
+
+
+
+time_values_real = linspace(1, 604800,604800);                   % Initializes Primary Time loop (wraps time around each loop)
 
 PRKEtime_values = linspace(0, 0.001, 10000);
-generationTime = 1 * (10^-7); % Mean neutron generation time
-decay_constants = [0.0128, 0.0301, 0.124, 0.325, 1.12, 2.69]; % Decay constants for each precursor group
-beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % Beta values for precursor groups
-beta = sum(beta_i); % Effective beta;
-concentration_values = zeros(6, length(PRKEtime_values)); % Array for concentration values
-TB=34;
-initial_power = 1; % Initial power in watts
-Toutold=27;
-reactivity=0;
-old_Mod_Reactivity_R = -0.0015;
+generationTime = 1 * (10^-7);                                                   % Mean neutron generation time
+decay_constants = [0.0128, 0.0301, 0.124, 0.325, 1.12, 2.69];                   % Decay constants for each precursor group
+beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092];          % Beta values for precursor groups
+beta = sum(beta_i);                                                             % Effective beta 
+concentration_values = zeros(6, length(PRKEtime_values));                       % Array for concentration values
+TB=34;                                                                          % Initial bulk temperature
+initial_power = 1;                                                              % Initial power in MW
+Toutold=27;                                                                     % Initial Tmeperature out of HX
+reactivity=0;                                                                   % Initial Reactivity 
+old_Mod_Reactivity_R = -0.0015;                                                 % Initial Moderator effect on reactivity
 
-old_Fuel_Reactivity_R = -0.0038;
-initial_concentration = beta_i./(decay_constants.*generationTime).*initial_power;
+old_Fuel_Reactivity_R = -0.0038;                                                % Initial Fuel Temp effect on reactivity
+
+initial_concentration = beta_i./(decay_constants.*generationTime).*initial_power;         % Initializes concentration values
 
 
-ids=24120;            % Iodine_decay_constant [s]
+ids=24120;            % Iodine_decay_constant [s]                               
 xds=33120;            % Xenon_decay_constant [s]
 ify=0.0629;           % Iodine_fission_yield [%]
 
@@ -27,8 +31,8 @@ xmacs=2.75*10^(-18);  % Xenon_microscopic_abs_cross_section m[cm^2]
 
 mfcs=0.0487;         % macroscopic_fission_cross_section_U235 [cm^2]
 mifcs=585*10^(-24);    % microscopic_fission_cross_section_U235 [cm^2]
-volume_of_core=5.13*10^27; % [atoms/core]
-E_r=200.7*10^6*1.6*10^(-19);                            % Energy per fission (estimate) converted from MeV to W [W/fisison]
+volume_of_core=5.13*10^27;                                                      % [atoms/core]
+E_r=200.7*10^6*1.6*10^(-19);                                                    % Energy per fission (estimate) converted from MeV to W [W/fisison]
 
 time_values = linspace(0, 0.01, 40);
 reac_values = zeros(1, length(time_values));
@@ -47,7 +51,7 @@ f_r_grap=[];
 for x = time_values_real
 
 
-for i = 1:length(PRKEtime_values)
+for i = 1:length(PRKEtime_values)                % Euler method that updates power value each 0.001 second
     
     concentration_values(:,i) = initial_concentration;
 
