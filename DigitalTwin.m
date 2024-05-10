@@ -1,6 +1,7 @@
+format default
 time_values_real = linspace(1, 604800,604800);
 
-PRKEtime_values = linspace(0, 0.01, 10000);
+PRKEtime_values = linspace(0, 0.001, 10000);
 generationTime = 1 * (10^-7); % Mean neutron generation time
 decay_constants = [0.0128, 0.0301, 0.124, 0.325, 1.12, 2.69]; % Decay constants for each precursor group
 beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % Beta values for precursor groups
@@ -10,7 +11,9 @@ TB=34;
 initial_power = 1; % Initial power in watts
 Toutold=27;
 reactivity=0;
+old_Mod_Reactivity_R = -0.0015;
 
+old_Fuel_Reactivity_R = -0.0038;
 initial_concentration = beta_i./(decay_constants.*generationTime).*initial_power;
 
 
@@ -26,7 +29,7 @@ mfcs=0.0487;         % macroscopic_fission_cross_section_U235 [cm^2]
 mifcs=585*10^(-24);    % microscopic_fission_cross_section_U235 [cm^2]
 volume_of_core=5.13*10^27; % [atoms/core]
 E_r=200.7*10^6*1.6*10^(-19);                            % Energy per fission (estimate) converted from MeV to W [W/fisison]
-power=1;    
+
 time_values = linspace(0, 0.01, 40);
 reac_values = zeros(1, length(time_values));
 
@@ -37,8 +40,10 @@ initial_xenon_pop=0;
 dt =PRKEtime_values(2)-PRKEtime_values(1);
 concentration_sum = 0;
 
-
-
+actual_time=[];
+tot_p=[];
+TB_tot=[];
+f_r_grap=[];
 for x = time_values_real
 
 
@@ -71,7 +76,7 @@ end
 
 
 %updates temp with new power
-TB = bulktemp(TB, initial_power,Toutold);
+
 
 %updates moderator temp in core with new T bulk value
 Tf = Fueltemperature(TB, initial_power,Toutold);
@@ -80,10 +85,11 @@ modtemp = avgmodtemp(TB, initial_power,Toutold);
 
 Mod_Reactivity_R = mod_reactivity(modtemp);
 
-Fuel_Reactivity_R = fuel_reactivity(Tf);
+Fuel_Reactivity_R = Fuel_reactivity(Tf);
 
 Toutold =HeatExchanger(TB, Toutold);
 
+TB = bulktemp(TB, initial_power,Toutold);
 for i = 1:length(PRKEtime_values)
     
     
@@ -110,22 +116,33 @@ end
 reac_eff_Xe = (xmacs*new_xenon)/(mfcs*nu);  % Calculates effect on reactivity from Xenon population
 
 
-reactivity = master_reactivity_function(Mod_Reactivity_R, reac_eff_Xe,Fuel_Reactivity_R);
+reactivity = master_reactivity_function(old_Mod_Reactivity_R, old_Fuel_Reactivity_R, Mod_Reactivity_R, Fuel_Reactivity_R, reac_eff_Xe);
 
+old_Mod_Reactivity_R = Mod_Reactivity_R;
 
+old_Fuel_Reactivity_R = Fuel_Reactivity_R;
 
-actual_time(x) = x/100;    
+actual_time(x) = x/1000;    
+
 tot_p(x)=initial_power;
-drawnow
+
+%TB_tot(x)=TB;
+
+%f_r_graph(x)=Fuel_Reactivity_R
 
 
-
-
-
+%plot(actual_time,f_r_grap),grid,
+%xlabel('Time (s)'), ylabel('Fuel Reactivty')
+%plot(actual_time,TB_tot),grid,
+%xlabel('Time (s)'), ylabel('Temp (C)')
 
 
 plot(actual_time,tot_p),grid,
 xlabel('Time (s)'), ylabel('Power (MW)')
+drawnow
+
+disp(initial_power)
+
 
 end 
    
@@ -162,8 +179,8 @@ end
 
 
 
-function Fuel_Reactivity_R = fuel_reactivity(T_avg_fuel_in_core)
-Fuel_Reactivity_R = 1.072*10^-5*(T_avg_fuel_in_core)+2.49*10^-3; % in celcius
+function Fuel_Reactivity_R = Fuel_reactivity(T_avg_fuel_in_core)
+Fuel_Reactivity_R = -1.072*10^-5*(T_avg_fuel_in_core)+2.49*10^-3; % in celcius
 end 
 
 
@@ -177,7 +194,7 @@ function PrimaryWaterTout = HeatExchanger(TB,Toutold)
 end
 
 function Tout = coreout(TB, initial_power, Toutold)
-    Tout = HeatExchanger(TB,Toutold) + ((initial_power * 1000) / (39.12 * 4.12));
+    Tout = HeatExchanger(TB,Toutold) + ((initial_power*1000) / (39.12 * 4.12));
 end
 
 
@@ -196,26 +213,26 @@ function TB = bulktemp(TB, initial_power,Toutold)
    
 end
 
-function cr_reac_eff = control_rod_reac() % CAN BE FURTHER REFINED, roughly dtermines reactivity; tables with values will later be added for better accuracy
+function cr_reac_eff = control_rod_reac(old_Mod_Reactivity_R,old_Fuel_Reactivity_R) % CAN BE FURTHER REFINED, roughly dtermines reactivity; tables with values will later be added for better accuracy
     reg_rod=linspace(0,3.19, 1001);
     safety_rod=linspace(0,2.15,1001);
     shim_rod=linspace(0,2.56,1001);
     trans_rod=linspace(0,2.68,1001);
-    reg_height=50;
-    safety_height=100;
-    shim_height=1;
-    trans_height=1;
-    cr_reac_eff=(reg_rod(reg_height*10)+safety_rod(safety_height*10)+shim_rod(shim_height*10)+trans_rod(trans_height*10))*0.0075;
+    reg_height=36;
+    safety_height=5;
+    shim_height=5;
+    trans_height=6;
+    %cr_reac_eff=(reg_rod(reg_height*10)+safety_rod(safety_height*10)+shim_rod(shim_height*10)+trans_rod(trans_height*10))*0.0075;
+    cr_reac_eff = -1*(old_Mod_Reactivity_R+old_Fuel_Reactivity_R);
     
 
 end 
 
 
 
- 
 
-function reactivity = master_reactivity_function(Mod_Reactivity_R, Fuel_Reactivity_R,reac_eff_Xe)
-        reactivity=(control_rod_reac() - reac_eff_Xe + Mod_Reactivity_R + Fuel_Reactivity_R);
+function reactivity = master_reactivity_function(old_Mod_Reactivity_R,old_Fuel_Reactivity_R,Mod_Reactivity_R, Fuel_Reactivity_R,reac_eff_Xe)
+        reactivity = control_rod_reac(old_Mod_Reactivity_R,old_Fuel_Reactivity_R) + reac_eff_Xe*0 + Mod_Reactivity_R+ Fuel_Reactivity_R
         
 end 
 
