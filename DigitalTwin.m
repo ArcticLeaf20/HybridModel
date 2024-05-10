@@ -79,7 +79,7 @@ end
 
 
 
-%updates temp with new power
+
 
 
 %updates moderator temp in core with new T bulk value
@@ -91,10 +91,10 @@ Mod_Reactivity_R = mod_reactivity(modtemp);
 
 Fuel_Reactivity_R = Fuel_reactivity(Tf);
 
-Toutold =HeatExchanger(TB, Toutold);
+Toutold =HeatExchanger(TB, Toutold);   %updates temp with new power
 
-TB = bulktemp(TB, initial_power,Toutold);
-for i = 1:length(PRKEtime_values)
+TB = bulktemp(TB, initial_power,Toutold);   %updates temp with new power
+for i = 1:length(PRKEtime_values)  % Determines Xenon population as time progresse also using Euler
     
     
     neutron_flux = (initial_power*(10^6))/((mifcs)*E_r*volume_of_core);
@@ -120,12 +120,14 @@ end
 reac_eff_Xe = (xmacs*new_xenon)/(mfcs*nu);  % Calculates effect on reactivity from Xenon population
 
 
-reactivity = master_reactivity_function(old_Mod_Reactivity_R, old_Fuel_Reactivity_R, Mod_Reactivity_R, Fuel_Reactivity_R, reac_eff_Xe);
+reactivity = master_reactivity_function(old_Mod_Reactivity_R, old_Fuel_Reactivity_R, Mod_Reactivity_R, Fuel_Reactivity_R, reac_eff_Xe);     % Determines overall rectivity (updates reactivty for next PRKE iteration)
 
 old_Mod_Reactivity_R = Mod_Reactivity_R;
 
-old_Fuel_Reactivity_R = Fuel_Reactivity_R;
+old_Fuel_Reactivity_R = Fuel_Reactivity_R;    % Fudge values for control rod height for now to make system not converge
 
+
+% Everything left in loop is for graphing the power or other paremters as need be
 actual_time(x) = x/1000;    
 
 tot_p(x)=initial_power;
@@ -170,7 +172,7 @@ end
 
 
 
-
+% Fuctions used in loops above, should be self explanatory
 
 
 function Mod_Reactivity_R = mod_reactivity(T_avg_in_core)
