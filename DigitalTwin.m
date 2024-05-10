@@ -172,7 +172,7 @@ end
 
 
 function PrimaryWaterTout = HeatExchanger(TB)
-    PrimaryWaterTout = TB - ((54.19*(30.5-25.5))/(39.12*4.2));   
+   PrimaryWaterTout = -(((((164.3) * (TB) - 4436.2) / (TB - 12.77)) * ((TB + Toutold) / 2)) / 164.3) + TB  
 end
 
 function Tout = coreout(TB, initial_power)
