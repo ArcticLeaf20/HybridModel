@@ -5,8 +5,8 @@ time_values_real = 1:604800;
 
 PRKEtime_values = linspace(0, 0.01, 10000);
 generationTime = 1 * (10^-7); % Mean neutron generation time
-decay_constants = [0.0128, 0.0301, 0.124, 0.325, 1.12, 2.69]; % Decay constants for each precursor group
-beta_i = [0.000073, 0.000626, 0.000443, 0.000685, 0.000181, 0.000092]; % Beta values for precursor groups
+decay_constants = [0.00124, 0.031, 0.111, 0.301, 1.136, 3.014]; % Decay constants for each precursor group
+beta_i = [0.00021, 0.00141, 0.00127, 0.00255, 0.00074, 0.00027]; % Beta values for precursor groups
 beta = sum(beta_i); % Effective beta;
 concentration_values = zeros(6, length(PRKEtime_values)); % Array for concentration values
 TB=34;
@@ -178,7 +178,7 @@ function Mod_Reactivity_R = mod_reactivity(T_avg_in_core)
 T = T_avg_in_core; % in celcius
 B_eff = 0.0075;
 MTC = -0.0072; % dollars per celcius -0.0072 to -0.004
-MR_D = MTC*T; % moderator reactivity in cents
+MR_D = MTC*T; % moderator reactivity in dollars
 Mod_Reactivity_R = MR_D*B_eff;
 end 
 
