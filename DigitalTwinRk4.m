@@ -1,5 +1,7 @@
+clc
+clear variables
 format long
-time_values_real = linspace(1, 604800,604800);
+time_values_real = 1:604800;
 
 PRKEtime_values = linspace(0, 0.01, 10000);
 generationTime = 1 * (10^-7); % Mean neutron generation time
